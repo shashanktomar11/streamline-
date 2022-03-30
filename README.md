@@ -1,7 +1,7 @@
 # Streamline++ : A modified version of the Streamline Cache Attack
 
 ### Modifications  
-The modified multithreaded versions of the sender and receiver can be found in the src folder.
+The modified multithreaded versions of the sender and receiver can be found in the src folder. We have implemented a multi-threaded receiver to increase the bandwidth of the attack.
 
 ### Hardware Requirements
 * Intel CPU from Haswell or newer generation
