@@ -1,7 +1,7 @@
-# Streamline Covert Channel Attack (ASPLOS'21)
+# Streamline++ : A modified version of the Streamline Cache Attack
 
-### Citation  
-Gururaj Saileshwar, Christopher Fletcher and Moinuddin Qureshi. **Streamline: A Fast, Flushless Cache Covert-Channel Attack by Enabling Asynchronous Collusion**. In _Proceedings of the 26th International Conference on Architectural Support for Programming Languages and Operating Systems, ASPLOS 2021_.
+### Modifications  
+The modified multithreaded versions of the sender and receiver can be found in the src folder.
 
 ### Hardware Requirements
 * Intel CPU from Haswell or newer generation
