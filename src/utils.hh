@@ -80,7 +80,18 @@
 #define OFFSET_FR_SYNC_REG_TX2 (4*4096)
 #define OFFSET_FR_SYNC_REG_RX3 (5*4096)
 #define OFFSET_FR_SYNC_REG_TX3 (6*4096)
+
+#ifndef DOUBLE_SHARED
 #define OFFSET_SHARED_ARRAY    (7*4096)
+#else
+#define OFFSET_FR_SYNC_REG_RX4 (7*4096)
+#define OFFSET_FR_SYNC_REG_TX4 (8*4096)
+#define OFFSET_FR_SYNC_REG_RX5 (9*4096)
+#define OFFSET_FR_SYNC_REG_TX5 (10*4096)
+#define OFFSET_FR_SYNC_REG_RX6 (11*4096)
+#define OFFSET_FR_SYNC_REG_TX6 (12*4096)
+#define OFFSET_SHARED_ARRAY    (13*4096)
+#endif
 // For restricting size of debugging data-structures
 #define NUM_BITS_DEBUG_MAX (1000000)
 
