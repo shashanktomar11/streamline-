@@ -69,10 +69,16 @@ uint64_t RX_DELAY_CYCLES = 250000;
 uint64_t* sync_rxready_page; //to be a page-size allocated page-aligned.
 uint64_t* sync_rxready_page1; //to be a page-size allocated page-aligned.
 uint64_t* sync_rxready_page2; //to be a page-size allocated page-aligned.
+uint64_t* sync_rxready_page3; //to be a page-size allocated page-aligned.
+uint64_t* sync_rxready_page4; //to be a page-size allocated page-aligned.
+uint64_t* sync_rxready_page5; //to be a page-size allocated page-aligned.
 
 uint64_t* sync_txready_page; //to be a page-size allocated page-aligned.
 uint64_t* sync_txready_page1; //to be a page-size allocated page-aligned.
 uint64_t* sync_txready_page2; //to be a page-size allocated page-aligned.
+uint64_t* sync_txready_page3; //to be a page-size allocated page-aligned.
+uint64_t* sync_txready_page4; //to be a page-size allocated page-aligned.
+uint64_t* sync_txready_page5; //to be a page-size allocated page-aligned.
 
 
 // -------- Network Parameters  -------------
@@ -172,7 +178,7 @@ int main(int argc, char **argv)
 
     // Stream Through Shared Array
     uint64_t temp = 0;
-    for(uint64_t i=0;i<SHARED_ARRAY_NUMENTRIES;i++){    
+    for(uint64_t i=0;i<2*SHARED_ARRAY_NUMENTRIES;i++){    
       temp+= SHARED_ARRAY[i];
     }
 
@@ -183,18 +189,30 @@ int main(int argc, char **argv)
     sync_txready_page1 = (uint64_t*) (config.addr + OFFSET_FR_SYNC_REG_TX2);
     sync_rxready_page2 = (uint64_t*) (config.addr + OFFSET_FR_SYNC_REG_RX3);
     sync_txready_page2 = (uint64_t*) (config.addr + OFFSET_FR_SYNC_REG_TX3);
+    sync_rxready_page3 = (uint64_t*) (config.addr + OFFSET_FR_SYNC_REG_RX4);
+    sync_txready_page3 = (uint64_t*) (config.addr + OFFSET_FR_SYNC_REG_TX4);
+    sync_rxready_page4 = (uint64_t*) (config.addr + OFFSET_FR_SYNC_REG_RX5);
+    sync_txready_page4 = (uint64_t*) (config.addr + OFFSET_FR_SYNC_REG_TX5);
+    sync_rxready_page5 = (uint64_t*) (config.addr + OFFSET_FR_SYNC_REG_RX6);
+    sync_txready_page5 = (uint64_t*) (config.addr + OFFSET_FR_SYNC_REG_TX6);
 
     // Flush shared page used for synchronization
     for(uint64_t i=0;i<PAGE_SZ/sizeof(uint64_t);i++){
       _mm_clflush(&sync_rxready_page[i]);
       _mm_clflush(&sync_rxready_page1[i]);
       _mm_clflush(&sync_rxready_page2[i]);
+      _mm_clflush(&sync_rxready_page3[i]);
+      _mm_clflush(&sync_rxready_page4[i]);
+      _mm_clflush(&sync_rxready_page5[i]);
 
     }
     for(uint64_t i=0;i<PAGE_SZ/sizeof(uint64_t);i++){
       _mm_clflush(&sync_txready_page[i]);
       _mm_clflush(&sync_txready_page1[i]);
       _mm_clflush(&sync_txready_page2[i]);
+      _mm_clflush(&sync_txready_page3[i]);
+      _mm_clflush(&sync_txready_page4[i]);
+      _mm_clflush(&sync_txready_page5[i]);
     }   
 
     //Transmission & Receiver Data-Structures
@@ -219,7 +237,7 @@ int main(int argc, char **argv)
 
     //Print Preliminaries.
     printf("Array Size: %llu bytes (%.2f GB). Starting index is: %llu (%lluth page)\n",
-           SHARED_ARRAY_NUMENTRIES*sizeof(SHARED_ARRAY[0]), SHARED_ARRAY_NUMENTRIES*sizeof(SHARED_ARRAY[0])/(1024*1024*1024.0),\
+           2*SHARED_ARRAY_NUMENTRIES*sizeof(SHARED_ARRAY[0]), 2*SHARED_ARRAY_NUMENTRIES*sizeof(SHARED_ARRAY[0])/(1024*1024*1024.0),\
            BITID_2_ARRINDEX(SHARED_SEED), SHARED_SEED);
 
     printf("Other Data-Structures Sizes: rx_time_obs:%2f MB, tx_payload:%.2f MB, rx_payload:%.2f MB.\n",
@@ -304,7 +322,7 @@ int main(int argc, char **argv)
     uint64_t TX_PRIVATE_ARRAY[PAGE_SZ] = {1} ; 
   
     //Flush SHARED_ARRAY
-    for(uint64_t i=0;i<SHARED_ARRAY_NUMENTRIES; i++){
+    for(uint64_t i=0;i<2*SHARED_ARRAY_NUMENTRIES; i++){
       _mm_clflush(&SHARED_ARRAY[i]);
     }
 
@@ -334,7 +352,7 @@ int main(int argc, char **argv)
       int curr_payload = tx_payload[bit_id];
       //Get array index to communicate by getting curr_bitid -> curr_arrindex)
       uint64_t curr_bitid = SHARED_SEED + bit_id ;
-      uint64_t curr_arrindex = (BITID_2_ARRINDEX(curr_bitid))%SHARED_ARRAY_NUMENTRIES + 4;
+      uint64_t curr_arrindex = (BITID_2_ARRINDEX(curr_bitid))%2*SHARED_ARRAY_NUMENTRIES + 4;
 
       //Based on Payload value (0/1), Mask = 0x0000000.. if Payload=0, or 0xFFFFFFF.. if Payload=1
       uint64_t payload_mask_0 = 0 - ((uint64_t)curr_payload & (uint64_t)1);
@@ -362,7 +380,7 @@ int main(int argc, char **argv)
         int prev_payload = tx_payload[lag_bit_id];
         //Get array index to communicate by getting curr_bitid -> curr_arrindex)
         uint64_t prev_bitid = SHARED_SEED + lag_bit_id ;
-        uint64_t prev_arrindex = (BITID_2_ARRINDEX(prev_bitid))%SHARED_ARRAY_NUMENTRIES + 4;
+        uint64_t prev_arrindex = (BITID_2_ARRINDEX(prev_bitid))%2*SHARED_ARRAY_NUMENTRIES + 4;
 
         //Based on Payload value (0/1), Mask = 0x0000000.. if Payload=0, or 0xFFFFFFF.. if Payload=1
         uint64_t prev_payload_mask_0 = 0 - ((uint64_t)prev_payload & (uint64_t)1);
@@ -414,14 +432,20 @@ int main(int argc, char **argv)
         volatile uint64_t* sync_rxready_addr =  (&sync_rxready_page[0]);
         volatile uint64_t* sync_rxready_addr1 =  (&sync_rxready_page1[0]);
         volatile uint64_t* sync_rxready_addr2 =  (&sync_rxready_page2[0]);
+        volatile uint64_t* sync_rxready_addr3 =  (&sync_rxready_page3[0]);
+        volatile uint64_t* sync_rxready_addr4 =  (&sync_rxready_page4[0]);
+        volatile uint64_t* sync_rxready_addr5 =  (&sync_rxready_page5[0]);
 
         volatile uint64_t* sync_txready_addr =  (&sync_txready_page[0]);
         volatile uint64_t* sync_txready_addr1 =  (&sync_txready_page1[0]);
         volatile uint64_t* sync_txready_addr2 =  (&sync_txready_page2[0]);
+        volatile uint64_t* sync_txready_addr3 =  (&sync_txready_page3[0]);
+        volatile uint64_t* sync_txready_addr4 =  (&sync_txready_page4[0]);
+        volatile uint64_t* sync_txready_addr5 =  (&sync_txready_page5[0]);
       
         unsigned int sync_junk = 0;
-        uint64_t sync_temp = 0,sync_temp1=0,sync_temp2=0;
-        register uint64_t sync_time0, sync_delta_time0,sync_time1, sync_delta_time1,sync_time2, sync_delta_time2;
+        uint64_t sync_temp = 0,sync_temp1=0,sync_temp2=0, sync_temp3=0, sync_temp4=0, sync_temp5=0;
+        register uint64_t sync_time0, sync_delta_time0,sync_time1, sync_delta_time1,sync_time2, sync_delta_time2,sync_time3, sync_delta_time3,sync_time4, sync_delta_time4,sync_time5, sync_delta_time5;
 
         register uint64_t txsync_reached_donetime,txsync_complete_donetime;
       
@@ -437,11 +461,17 @@ int main(int argc, char **argv)
           _mm_clflush(&sync_rxready_page[0]);
           _mm_clflush(&sync_rxready_page1[0]);
           _mm_clflush(&sync_rxready_page2[0]);
+          _mm_clflush(&sync_rxready_page3[0]);
+          _mm_clflush(&sync_rxready_page4[0]);
+          _mm_clflush(&sync_rxready_page5[0]);
         
           //z. Communicate that Tx has reached barrier
           sync_temp += *sync_txready_addr;
           sync_temp += *sync_txready_addr1;
           sync_temp += *sync_txready_addr2;
+          sync_temp += *sync_txready_addr3;
+          sync_temp += *sync_txready_addr4;
+          sync_temp += *sync_txready_addr5;
 
           //b. Sleep
           delayloop(1000);
@@ -459,6 +489,18 @@ int main(int argc, char **argv)
           sync_temp2 = *sync_rxready_addr2;
           sync_delta_time2 = __rdtscp(&sync_junk) - sync_time2; /* READ TIMER & COMPUTE ELAPSED TIME */
 
+          sync_time3 = __rdtscp( &sync_junk); /* READ TIMER */
+          sync_temp3 = *sync_rxready_addr3;
+          sync_delta_time3 = __rdtscp(&sync_junk) - sync_time3; /* READ TIMER & COMPUTE ELAPSED TIME */
+
+          sync_time4 = __rdtscp( &sync_junk); /* READ TIMER */
+          sync_temp4 = *sync_rxready_addr4;
+          sync_delta_time4 = __rdtscp(&sync_junk) - sync_time4; /* READ TIMER & COMPUTE ELAPSED TIME */
+
+          sync_time5 = __rdtscp( &sync_junk); /* READ TIMER */
+          sync_temp5 = *sync_rxready_addr5;
+          sync_delta_time5 = __rdtscp(&sync_junk) - sync_time5; /* READ TIMER & COMPUTE ELAPSED TIME */
+          
           //d. Synchronization Condition
           //if rx_ready has 2 LLC hit, Rx reached barrier
           if(sync_delta_time0<LLC_HIT_THRESHOLD_CYCLES_SYNC)
@@ -466,9 +508,15 @@ int main(int argc, char **argv)
           if(sync_delta_time1<LLC_HIT_THRESHOLD_CYCLES_SYNC)
             llc_hit_count++;        
           if(sync_delta_time2<LLC_HIT_THRESHOLD_CYCLES_SYNC)
+            llc_hit_count++;    
+          if(sync_delta_time3<LLC_HIT_THRESHOLD_CYCLES_SYNC)
             llc_hit_count++;        
-        
-          if(llc_hit_count >= 2) 
+          if(sync_delta_time4<LLC_HIT_THRESHOLD_CYCLES_SYNC)
+            llc_hit_count++;    
+          if(sync_delta_time5<LLC_HIT_THRESHOLD_CYCLES_SYNC)
+            llc_hit_count++;
+
+          if(llc_hit_count >= 5) 
             sync_complete=true;
 
         }
